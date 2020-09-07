@@ -26,9 +26,10 @@ router.post("/", (req, res)=>{
 
 router.get("/:id", (req, res)=>{
     db.findById(req.params.id).then(post=>{
+        if(!post) return res.status(404).json({ message: "The post with the specified ID does not exist." });
         res.status(200).json(post[0]);
     }).catch(err=>{
-        res.status(404).json({ message: "The post with the specified ID does not exist." });
+        res.status(500).json({ error: "The posts information could not be retrieved." });
     })
 })
 
@@ -51,13 +52,31 @@ router.put("/:id", (req, res)=>{
 router.delete("/:id", (req, res)=>{
     db.findById(req.params.id).then(post=>{
         const postToBeDeleted = post[0];
+        if(!postToBeDeleted) return res.status(404).json({ message: "The post with the specified ID does not exist." });
         db.remove(postToBeDeleted.id).then(itemsDeleted=>{
             res.status(200).json(postToBeDeleted);
         }).catch(err=>{
             res.status(500).json({ error: "The post could not be removed" });
         })
     }).catch(err=>{
-        res.status(404).json({ message: "The post with the specified ID does not exist." });
+        
+    })
+})
+
+router.get("/:id/comments", (req, res)=>{
+    db.findById(req.params.id).then(post=>{
+        post = post[0]
+        if(!post) return res.status(404).json({ message: "The post with the specified ID does not exist." });
+        
+        db.findPostComments(post.id).then(comments=>{
+            console.log(comments);
+            res.status(200).json(comments);
+        }).catch(err=>{
+            console.log(err);
+            res.status(500).json({ error: "The comments information could not be retrieved." });
+        })
+    }).catch(err=>{
+        res.status(500).json({ error: "The posts information could not be retrieved." });
     })
 })
 
